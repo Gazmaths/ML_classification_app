@@ -8,5 +8,5 @@ def explore_data(data, target_column):
         st.write(corr)
     
     if st.sidebar.checkbox("Pairplot"):
-        sns.pairplot(data)
-        st.pyplot()
+        fig = sns.pairplot(data)  # This creates a figure
+        st.pyplot(fig.figure)     # Use the figure from the pairplot object
