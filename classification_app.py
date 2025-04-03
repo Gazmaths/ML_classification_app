@@ -73,5 +73,23 @@ if st.sidebar.button("🚀 Train Models"):
     joblib.dump(best_model, "best_model.pkl")
     joblib.dump(scaler, "scaler.pkl")
 
+# Upload Unseen Data for Prediction
+unseen_file = st.file_uploader("Upload CSV for Prediction", type="csv")
+if unseen_file:
+    unseen_data = pd.read_csv(unseen_file)
+    st.write("📄 **Unseen Data Preview:**")
+    st.write(unseen_data.head())
+
+    # Load model and scaler
+    scaler, model = load_scaler_and_model("scaler.pkl", "best_model.pkl")
+
+    # Preprocess and Predict
+    processed_unseen_data = preprocess_input_data(unseen_data, scaler)
+
+    if st.button("Predict"):
+        predictions = predict_unseen_data(model, processed_unseen_data)
+        st.write("🧠 **Predictions:**")
+        st.write(predictions)
+
 
 
