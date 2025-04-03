@@ -30,37 +30,48 @@ if uploaded_file:
     explore_data(data, target_column)
 
     # === Model Training ===
-    if st.sidebar.button("🚀 Train Models"):
-        best_models, X_test, y_test = train_models(data, target_column)
-        best_model_name, best_model, results = evaluate_model(best_models, X_test, y_test)
-        
-        st.subheader(f"✅ Best Model: {best_model_name}")
-        
-        st.subheader("📋 Classification Report")
-        st.json(results[best_model_name]["report"])
+if st.sidebar.button("🚀 Train Models"):
+    best_models, X_test, y_test = train_models(data, target_column)
+    best_model_name, best_model, results = evaluate_model(best_models, X_test, y_test)
 
-        # === Show Best Hyperparameters ===
-        if hasattr(best_model, "best_params_"):
-            st.subheader("🔧 Best Hyperparameters (from GridSearchCV)")
-            st.json(best_model.best_params_)
-        elif hasattr(best_model, "get_params"):
-            st.subheader("🔧 Model Parameters")
-            st.json(best_model.get_params())
+    # Show accuracy for all models
+    st.subheader("📈 Model Accuracies")
+    accuracy_data = {
+        "Model": [],
+        "Accuracy": []
+    }
+    for model_name, result in results.items():
+        accuracy_data["Model"].append(model_name)
+        accuracy_data["Accuracy"].append(round(result["accuracy"], 4))
+    
+    accuracy_df = pd.DataFrame(accuracy_data).sort_values(by="Accuracy", ascending=False)
+    st.dataframe(accuracy_df)
 
-        # === Feature Importance ===
-        st.subheader("📌 Feature Importances")
-        feature_df = feature_importance(best_model, X_test)
-        st.dataframe(feature_df)
+    # Optional: Bar Chart
+    st.bar_chart(accuracy_df.set_index("Model"))
 
-        # === Save Model and Scaler ===
-        scaler = StandardScaler().fit(data.drop(columns=[target_column]))
-        joblib.dump(best_model, "best_model.pkl")
-        joblib.dump(scaler, "scaler.pkl")
+    # Show best model details
+    st.subheader(f"✅ Best Model: {best_model_name}")
+    st.subheader("📋 Classification Report")
+    st.json(results[best_model_name]["report"])
 
-# === Upload Unseen Data for Prediction ===
-unseen_file = st.file_uploader("📁 Upload CSV for Prediction", type="csv")
+    # Show hyperparameters
+    if hasattr(best_model, "best_params_"):
+        st.subheader("🔧 Best Hyperparameters (from GridSearchCV)")
+        st.json(best_model.best_params_)
+    elif hasattr(best_model, "get_params"):
+        st.subheader("🔧 Model Parameters")
+        st.json(best_model.get_params())
 
-if unseen_file:
-    unseen_data_
+    # Feature importance
+    st.subheader("📌 Feature Importances")
+    feature_df = feature_importance(best_model, X_test)
+    st.dataframe(feature_df)
+
+    # Save model and scaler
+    scaler = StandardScaler().fit(data.drop(columns=[target_column]))
+    joblib.dump(best_model, "best_model.pkl")
+    joblib.dump(scaler, "scaler.pkl")
+
 
 
